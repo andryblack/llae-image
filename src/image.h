@@ -39,6 +39,8 @@ public:
 	size_t get_bpp() const { return get_bpp(m_format); }
 	size_t get_width() const { return m_width; }
 	size_t get_height() const { return m_height; }
+	size_t get_stride() const { return get_width() * get_bpp(); }
+	bool convert(ImageFormat fmt,size_t clr);
 	const uv::buffer_ptr& get_data() const { return m_data; }
 	ImageFormat get_format() const { return m_format; }
 	lua::multiret apply_alpha(lua::state& l);

@@ -19,6 +19,7 @@ void Image::lbind(lua::state& l) {
 	lua::bind::function(l,"new",&Image::lnew);
 	lua::bind::function(l,"get_width",&Image::get_width);
 	lua::bind::function(l,"get_height",&Image::get_height);
+	lua::bind::function(l,"get_stride",&Image::get_stride);
 	lua::bind::function(l,"get_format",&Image::get_format);
 	lua::bind::function(l,"get_data",&Image::get_data);
 	lua::bind::function(l,"apply_alpha",&Image::apply_alpha);
@@ -33,6 +34,7 @@ void Image::lbind(lua::state& l) {
     lua::bind::function(l,"find_bounds",&Image::find_bounds);
     lua::bind::function(l,"compare",&Image::compare);
     lua::bind::function(l,"downsample",&Image::downsample);
+    lua::bind::function(l,"convert",&Image::convert);
 }
 lua::multiret Image::lnew(lua::state& l) {
 	auto w = l.checkinteger(1);
@@ -92,6 +94,34 @@ void Image::gray_to_rgba(size_t clr) {
     }
     m_format = ImageFormat::RGBA;
     m_data = std::move(resbuf);
+}
+
+bool Image::convert(ImageFormat fmt,size_t clr) {
+	if (m_format == fmt)
+		return true;
+	if (m_format == ImageFormat::GRAY && fmt == ImageFormat::RGBA) {
+		gray_to_rgba(clr);
+		return true;
+	} 
+	if (m_format == ImageFormat::RGB && fmt == ImageFormat::RGBA) {
+		auto src = static_cast<const uint8_t*>(m_data->get_base());
+		auto resbuf = uv::buffer::alloc(m_width*m_height*4);
+    	auto dst = static_cast<uint8_t*>(resbuf->get_base());
+    	for (size_t y=0;y<m_height;++y) {
+	        for (size_t x=0;x<m_width;++x) {
+	            dst[0] = src[0];
+	            dst[1] = src[1];
+	            dst[2] = src[2];
+	            dst[3] = clr;
+	            dst += 4;
+	            src += 3;
+	        }
+	    }
+	    m_format = ImageFormat::RGBA;
+	    m_data = std::move(resbuf);
+	    return true;
+	}
+	return false;
 }
 
 static inline uint8_t blend_pm(uint8_t dst,uint8_t src,uint8_t ia,uint8_t a) {
