@@ -1,6 +1,6 @@
 
 #include <lua/bind.h>
-#include <uv/buffer.h>
+#include <llae/buffer.h>
 #include <uv/work.h>
 #include <uv/luv.h>
 #include "png_image.h"
@@ -10,9 +10,9 @@
 
 META_OBJECT_INFO(Image,meta::object)
 
-Image::Image(size_t w,size_t h,ImageFormat fmt,uv::buffer_ptr&& data) : m_width(w),m_height(h),m_format(fmt),m_data(std::move(data)) {
+Image::Image(size_t w,size_t h,ImageFormat fmt,llae::buffer_ptr&& data) : m_width(w),m_height(h),m_format(fmt),m_data(std::move(data)) {
 	if (!m_data) {
-		m_data = uv::buffer::alloc(w*h*get_bpp());
+		m_data = llae::buffer::alloc(w*h*get_bpp());
 	}
 }
 void Image::lbind(lua::state& l) {
@@ -43,7 +43,7 @@ lua::multiret Image::lnew(lua::state& l) {
 	if (fmt != ImageFormat::GRAY && fmt != ImageFormat::RGB && fmt != ImageFormat::RGBA) {
 		l.argerror(3,"invalid");
 	}
-	auto data = uv::buffer::get(l,4,true);
+	auto data = llae::buffer::get(l,4,true);
     if (data) {
         if (data->get_len() != (w*h*Image::get_bpp(fmt))) {
             l.argerror(4, "invalid size");
@@ -56,7 +56,7 @@ lua::multiret Image::lnew(lua::state& l) {
 
 
 ImagePtr Image::clone() {
-	uv::buffer_ptr data = uv::buffer::alloc(m_data->get_len());
+	auto data = llae::buffer::alloc(m_data->get_len());
 	memcpy(data->get_base(),m_data->get_base(),m_data->get_len());
 	return ImagePtr{new Image(get_width(),get_height(),get_format(),std::move(data))};
 }
@@ -80,7 +80,7 @@ void Image::gray_to_rgba(size_t clr) {
     if (m_format != ImageFormat::GRAY)
         return;
     auto src = static_cast<const uint8_t*>(m_data->get_base());
-    auto resbuf = uv::buffer::alloc(m_width*m_height*4);
+    auto resbuf = llae::buffer::alloc(m_width*m_height*4);
     auto dst = static_cast<uint8_t*>(resbuf->get_base());
     for (size_t y=0;y<m_height;++y) {
         for (size_t x=0;x<m_width;++x) {
@@ -105,7 +105,7 @@ bool Image::convert(ImageFormat fmt,size_t clr) {
 	} 
 	if (m_format == ImageFormat::RGB && fmt == ImageFormat::RGBA) {
 		auto src = static_cast<const uint8_t*>(m_data->get_base());
-		auto resbuf = uv::buffer::alloc(m_width*m_height*4);
+		auto resbuf = llae::buffer::alloc(m_width*m_height*4);
     	auto dst = static_cast<uint8_t*>(resbuf->get_base());
     	for (size_t y=0;y<m_height;++y) {
 	        for (size_t x=0;x<m_width;++x) {
@@ -221,7 +221,7 @@ void Image::flip_v() {
 	auto w = get_width();
 	auto h = get_height();
 	auto bpp = get_bpp();
-	auto resbuffer = uv::buffer::alloc(w*h*bpp);
+	auto resbuffer = llae::buffer::alloc(w*h*bpp);
 	const uint8_t* src = static_cast<const uint8_t*>(m_data->get_base());
 	uint8_t* dst = static_cast<uint8_t*>(resbuffer->get_base());
 	resbuffer->set_len(w*h*bpp);
@@ -248,7 +248,7 @@ lua::multiret Image::apply_alpha(lua::state& l) {
 		alphaImg->get_height() != get_height() ) {
 		l.argerror(2,"size different");
 	}
-	auto resbuffer = uv::buffer::alloc(get_width()*get_height()*4);
+	auto resbuffer = llae::buffer::alloc(get_width()*get_height()*4);
 	const uint8_t* src = static_cast<const uint8_t*>(m_data->get_base());
 	const uint8_t* src_a = static_cast<const uint8_t*>(alphaImg->get_data()->get_base());
 	uint8_t* dst = static_cast<uint8_t*>(resbuffer->get_base());
@@ -300,7 +300,7 @@ ImagePtr Image::extract_spr(size_t ex,size_t ey,size_t ew,size_t eh) {
 		return {};
 	}
 	auto bpp = get_bpp();
-	auto resbuffer = uv::buffer::alloc(ew*eh*bpp);
+	auto resbuffer = llae::buffer::alloc(ew*eh*bpp);
 	const uint8_t* src = static_cast<const uint8_t*>(m_data->get_base());
 	src += (ey*m_width+ex)*bpp;
 	uint8_t* dst = static_cast<uint8_t*>(resbuffer->get_base());
@@ -461,7 +461,7 @@ static inline uint8_t ds(uint8_t a,uint8_t b,uint8_t c,uint8_t d) {
 ImagePtr Image::downsample() {
 	auto w = get_width() / 2;
 	auto h = get_height() / 2;
-	ImagePtr res{new Image(w,h,m_format,uv::buffer_ptr())};
+	ImagePtr res{new Image(w,h,m_format,llae::buffer_ptr())};
 	auto dst = static_cast<uint8_t*>(res->get_data()->get_base());
 	auto src = static_cast<const uint8_t*>(m_data->get_base());
 	auto src2 = src + get_width() * get_bpp();

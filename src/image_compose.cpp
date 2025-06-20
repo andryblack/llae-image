@@ -4,7 +4,6 @@
 #include <lua/bind.h>
 #include <uv/work.h>
 #include <uv/luv.h>
-#include <uv/buffer.h>
 
 META_OBJECT_INFO(ImageCompose,meta::object)
 

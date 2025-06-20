@@ -2,7 +2,6 @@
 
 #include <meta/object.h>
 #include <common/intrusive_ptr.h>
-#include <uv/buffer.h>
 #include <png.h>
 #include "image.h"
 
@@ -20,7 +19,7 @@ public:
 	~JPEGImage();
 	static void lbind(lua::state& l);
 
-	static ImagePtr do_decode(const uv::buffer_base_ptr& data);
+	static ImagePtr do_decode(const llae::buffer_base_ptr& data);
 	static lua::multiret decode(lua::state& l);
 };
 typedef common::intrusive_ptr<JPEGImage> JPEGImagePtr; 

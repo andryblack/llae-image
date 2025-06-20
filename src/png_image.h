@@ -2,7 +2,6 @@
 
 #include <meta/object.h>
 #include <common/intrusive_ptr.h>
-#include <uv/buffer.h>
 #include <png.h>
 #include "image.h"
 
@@ -25,18 +24,18 @@ private:
 	size_t m_height = 0;
 	static void write_fn(png_structp, png_bytep, size_t);
 	static void flush_fn(png_structp);
-	uv::buffer_ptr m_png_data;
+	llae::buffer_ptr m_png_data;
 	void write(png_bytep, size_t);
 	bool write_header(ImageFormat fmt,size_t w,size_t h);
-	bool write_data_buffer(const uv::buffer_base_ptr& data);
-	uv::buffer_ptr end_write();
+	bool write_data_buffer(const llae::buffer_base_ptr& data);
+	llae::buffer_ptr end_write();
 public:
 	PNGImage();
 	~PNGImage();
 	static void lbind(lua::state& l);
 	static lua::multiret lnew(lua::state& l);
-	static uv::buffer_ptr do_encode(const ImagePtr& img);
-	static ImagePtr do_decode(const uv::buffer_base_ptr& data);
+	static llae::buffer_ptr do_encode(const ImagePtr& img);
+	static ImagePtr do_decode(const llae::buffer_base_ptr& data);
 
 	static lua::multiret encode(lua::state& l);
 	static lua::multiret decode(lua::state& l);

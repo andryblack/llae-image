@@ -2,7 +2,6 @@
 #include <lua/state.h>
 #include <lua/stack.h>
 #include <lua/bind.h>
-#include <uv/buffer.h>
 #include <uv/work.h>
 #include <uv/luv.h>
 
@@ -30,7 +29,7 @@ META_OBJECT_INFO(JPEGImage,meta::object)
     
     struct lm_jpeg_source_mgr : jpeg_source_mgr {
         
-        uv::buffer_base_ptr    data;
+        llae::buffer_base_ptr    data;
         size_t data_pos;
         bool    start_file;
         
@@ -106,7 +105,7 @@ JPEGImage::JPEGImage() {}
 JPEGImage::~JPEGImage() {
 }
 
-ImagePtr JPEGImage::do_decode(const uv::buffer_base_ptr& data) {
+ImagePtr JPEGImage::do_decode(const llae::buffer_base_ptr& data) {
     if (!data)
         return {};
    
@@ -208,7 +207,7 @@ ImagePtr JPEGImage::do_decode(const uv::buffer_base_ptr& data) {
 }
 
 class image_decode_jpeg : public uv::lua_cont_work {
-    uv::buffer_base_ptr m_data;
+    llae::buffer_base_ptr m_data;
     ImagePtr m_result;
     virtual void on_work() override {
         m_result = JPEGImage::do_decode(m_data);
@@ -226,7 +225,7 @@ class image_decode_jpeg : public uv::lua_cont_work {
         return args;
     }
 public:
-    explicit image_decode_jpeg(lua::ref&& cont,uv::buffer_base_ptr&& data) :
+    explicit image_decode_jpeg(lua::ref&& cont,llae::buffer_base_ptr&& data) :
         uv::lua_cont_work(std::move(cont)),m_data(std::move(data)) {}
 };
 
@@ -235,7 +234,7 @@ lua::multiret JPEGImage::decode(lua::state& l) {
     if (!l.isyieldable()) {
         l.argerror(1,"is async");
     }
-    auto data = uv::buffer_base::get(l,1,true);
+    auto data = llae::buffer_base::get(l,1,true);
     {
         l.pushthread();
         lua::ref cont;

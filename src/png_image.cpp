@@ -2,7 +2,7 @@
 #include <lua/state.h>
 #include <lua/stack.h>
 #include <lua/bind.h>
-#include <uv/buffer.h>
+#include <llae/buffer.h>
 #include <uv/work.h>
 #include <uv/luv.h>
 #include <iostream>
@@ -48,7 +48,7 @@ void PNGImage::flush_fn(png_structp) {
 void PNGImage::write(png_bytep data, size_t size) {
 	size_t pos = 0;
 	if (!m_png_data) {
-		m_png_data = uv::buffer::alloc(size*2);
+		m_png_data = llae::buffer::alloc(size*2);
 		m_png_data->set_len(0);
 	} else {
 		pos = m_png_data->get_len();
@@ -96,7 +96,7 @@ void PNGImage::set_size(lua::state& l) {
 }
 
 void PNGImage::write_row(lua::state& l) {
-	auto buf = uv::buffer_base::get(l,2,true);
+	auto buf = llae::buffer_base::get(l,2,true);
 	if (buf->get_len() != m_width*Image::get_bpp(m_format)) {
 		l.argerror(2,"invalid row len %");
 	}
@@ -105,12 +105,12 @@ void PNGImage::write_row(lua::state& l) {
 }
 
 void PNGImage::write_data(lua::state& l) {
-	auto buf = uv::buffer_base::get(l,2,true);
+	auto buf = llae::buffer_base::get(l,2,true);
 	if (!write_data_buffer(buf)) {
 		l.argerror(2,"invalid buffer size %");
 	}
 }
-bool PNGImage::write_data_buffer(const uv::buffer_base_ptr& buf) {
+bool PNGImage::write_data_buffer(const llae::buffer_base_ptr& buf) {
 	if (buf->get_len() != m_width*m_height*Image::get_bpp(m_format)) {
 		return false;
 	}
@@ -122,7 +122,7 @@ bool PNGImage::write_data_buffer(const uv::buffer_base_ptr& buf) {
     return true;
 }
 
-uv::buffer_ptr PNGImage::end_write() {
+llae::buffer_ptr PNGImage::end_write() {
 	png_write_end(m_write, m_info);
 	return std::move(m_png_data);
 }
@@ -133,7 +133,7 @@ lua::multiret PNGImage::close(lua::state& l) {
 	return {1};
 }
 
-uv::buffer_ptr PNGImage::do_encode(const ImagePtr& img) {
+llae::buffer_ptr PNGImage::do_encode(const ImagePtr& img) {
 	PNGImage encoder;
 	if (!encoder.write_header(img->get_format(),img->get_width(),img->get_height())) {
 		return {};
@@ -145,7 +145,7 @@ uv::buffer_ptr PNGImage::do_encode(const ImagePtr& img) {
 }
 
 struct ReadCtx {
-    uv::buffer_base_ptr data;
+    llae::buffer_base_ptr data;
     size_t pos;
 };
 
@@ -162,7 +162,7 @@ static void png_read_fn(png_structp png, png_bytep data, size_t size) {
     memcpy(data, static_cast<const uint8_t*>(ctx.data->get_base())+ctx.pos, size);
     ctx.pos += size;
 }
-ImagePtr PNGImage::do_decode(const uv::buffer_base_ptr& data) {
+ImagePtr PNGImage::do_decode(const llae::buffer_base_ptr& data) {
     if (!data) {
         return {};
     }
@@ -223,7 +223,7 @@ ImagePtr PNGImage::do_decode(const uv::buffer_base_ptr& data) {
 
 class image_encode_png : public uv::lua_cont_work {
 	ImagePtr m_image;
-	uv::buffer_ptr m_result;
+	llae::buffer_ptr m_result;
 	virtual void on_work() override {
 		m_result = PNGImage::do_encode(m_image);
 	}
@@ -273,7 +273,7 @@ lua::multiret PNGImage::encode(lua::state& l) {
 
 
 class image_decode_png : public uv::lua_cont_work {
-	uv::buffer_base_ptr m_data;
+	llae::buffer_base_ptr m_data;
 	ImagePtr m_result;
 	virtual void on_work() override {
 		m_result = PNGImage::do_decode(m_data);
@@ -291,7 +291,7 @@ class image_decode_png : public uv::lua_cont_work {
         return args;
 	}
 public:
-	explicit image_decode_png(lua::ref&& cont,uv::buffer_base_ptr&& data) :
+	explicit image_decode_png(lua::ref&& cont,llae::buffer_base_ptr&& data) :
 		uv::lua_cont_work(std::move(cont)),m_data(std::move(data)) {}
 };
 
@@ -300,7 +300,7 @@ lua::multiret PNGImage::decode(lua::state& l) {
 	if (!l.isyieldable()) {
 		l.argerror(1,"is async");
 	}
-	auto data = uv::buffer_base::get(l,1,true);
+	auto data = llae::buffer_base::get(l,1,true);
 	{
         l.pushthread();
         lua::ref cont;

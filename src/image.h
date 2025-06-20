@@ -3,7 +3,7 @@
 
 #include <meta/object.h>
 #include <common/intrusive_ptr.h>
-#include <uv/buffer.h>
+#include <llae/buffer.h>
 
 
 namespace lua {
@@ -26,11 +26,11 @@ private:
 	size_t m_width;
 	size_t m_height;
 	ImageFormat m_format;
-	uv::buffer_ptr m_data;
+	llae::buffer_ptr m_data;
 	template <typename BlendFunc>
 	bool draw_impl(size_t x,size_t y,const ImagePtr& img,BlendFunc);
 public:
-	explicit Image(size_t w,size_t h,ImageFormat fmt,uv::buffer_ptr&& data);
+	explicit Image(size_t w,size_t h,ImageFormat fmt,llae::buffer_ptr&& data);
 	static void lbind(lua::state& l);
 	static lua::multiret lnew(lua::state& l);
 	static size_t get_bpp(ImageFormat fmt) {
@@ -41,7 +41,7 @@ public:
 	size_t get_height() const { return m_height; }
 	size_t get_stride() const { return get_width() * get_bpp(); }
 	bool convert(ImageFormat fmt,size_t clr);
-	const uv::buffer_ptr& get_data() const { return m_data; }
+	const llae::buffer_ptr& get_data() const { return m_data; }
 	ImageFormat get_format() const { return m_format; }
 	lua::multiret apply_alpha(lua::state& l);
 	void flip_v();
