@@ -8,7 +8,7 @@
 #include <iostream>
 #include "image.h"
 
-
+#include <vector>
 #include <cstring>
 #include <cstdio>
 #include <iostream>

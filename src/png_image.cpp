@@ -6,6 +6,7 @@
 #include <uv/work.h>
 #include <uv/luv.h>
 #include <iostream>
+#include <vector>
 #include "image.h"
 
 META_OBJECT_INFO(PNGImage,meta::object)
