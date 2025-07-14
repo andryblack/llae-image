@@ -1,0 +1,73 @@
+# ---
+kind: pipeline
+type: docker
+name: default
+volumes:
+- name: dl_cache
+  host:
+    path: /var/lib/cache/llae-dl
+steps:
+- name: cleanup
+  image: alpine
+  commands:
+    - rm -rf bin/* build/* lib/*
+
+- name: setup
+  image: llae:latest
+  pull: never
+  volumes:
+  - name: dl_cache
+    path: /tmp/llae-dl
+  environment:
+    LLAE_DL_DIR: /tmp/llae-dl
+  commands:
+    - llae install
+    - llae init
+    - premake5 --file=build/premake5.lua gmake2
+
+- name: build
+  image: llae:latest
+  pull: never
+  commands:
+    - make -C build verbose=1 config=debug
+    - make -C build verbose=1 clean
+    - make -C build verbose=1 config=release 
+    
+- name: clean-for-windows
+  image: llae:latest
+  pull: never
+  volumes:
+  - name: dl_cache
+    path: /tmp/llae-dl
+  environment:
+    LLAE_DL_DIR: /tmp/llae-dl
+  commands:
+    - rm -rf bin/* build/* lib/*
+
+- name: setup-for-windows
+  image: llae:latest
+  pull: never
+  volumes:
+  - name: dl_cache
+    path: /tmp/llae-dl
+  environment:
+    LLAE_DL_DIR: /tmp/llae-dl
+    LLAE_TARGET_PLATFORM: windows
+  commands:
+    - llae install
+    - llae init
+    - premake5 --file=build/premake5.lua --os=windows gmake2
+
+- name: build-for-windows
+  image: llae:latest
+  pull: never
+  environment:
+     TOOLCHAIN: x86_64-w64-mingw32-
+     CC: x86_64-w64-mingw32-gcc
+     CXX: x86_64-w64-mingw32-g++
+     AR: x86_64-w64-mingw32-ar
+     LD: x86_64-w64-mingw32-ld
+  commands:
+    - make -C build verbose=1 config=debug
+    - make -C build verbose=1 clean
+    - make -C build verbose=1 config=release 
