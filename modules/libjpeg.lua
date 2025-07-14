@@ -35,10 +35,8 @@ function install()
 		insert_before = {
 			['#ifdef JPEG_INTERNALS'] = [[
 
-#ifndef JPEG_INTERNALS
-#if defined(WIN32) || defined(_WIN32) || defined(__CYGWIN__) || defined(__MINGW32__)
+#if (defined(WIN32) || defined(_WIN32) || defined(__CYGWIN__) || defined(__MINGW32__)) && defined(__cplusplus)
 #define HAVE_BOOLEAN 
-#endif
 #endif
 
 ]]
