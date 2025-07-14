@@ -30,7 +30,7 @@ function install()
 			['#undef const'] = '',
 			['#undef HAVE_STDDEF_H'] = '#define HAVE_STDDEF_H',
 			['#undef HAVE_STDLIB_H'] = '#define HAVE_STDLIB_H',
-		}
+		},
 	
 		insert_before = {
 			['#ifdef JPEG_INTERNALS'] = [[
