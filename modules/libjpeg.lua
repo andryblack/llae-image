@@ -32,61 +32,25 @@ function install()
 			['#undef HAVE_STDLIB_H'] = '#define HAVE_STDLIB_H',
 		}
 	
+		insert_before = {
+			['#ifdef JPEG_INTERNALS'] = [[
 
-		-- replace_line = {
-		-- 	['#define JPEG_LIB_VERSION  @JPEG_LIB_VERSION@'] = '#define JPEG_LIB_VERSION 62',
-		-- 	['#define LIBJPEG_TURBO_VERSION  @VERSION@'] = '#define LIBJPEG_TURBO_VERSION 3.0.1',
-		-- 	['#define LIBJPEG_TURBO_VERSION_NUMBER  @LIBJPEG_TURBO_VERSION_NUMBER@'] = '#define LIBJPEG_TURBO_VERSION_NUMBER  3000001',
-		-- 	['#cmakedefine C_ARITH_CODING_SUPPORTED 1'] = '#define C_ARITH_CODING_SUPPORTED 1',
-		-- 	['#cmakedefine D_ARITH_CODING_SUPPORTED 1'] = '#define D_ARITH_CODING_SUPPORTED 1',
-		-- 	['#cmakedefine WITH_SIMD 1'] = '/* #define WITH_SIMD 0 */',
-		-- 	['#cmakedefine RIGHT_SHIFT_IS_UNSIGNED 1'] = '/* #define RIGHT_SHIFT_IS_UNSIGNED 1 */',
-		-- }
-		-- define = {
-		-- 	['HAVE_PROTOTYPES'] = true,
-		-- },
-		-- comment = {
-		-- 	['void'] = true,
-		-- }
+#if defined(WIN32) || defined(_WIN32) || defined(__CYGWIN__) || defined(__MINGW32__)
+#define HAVE_BOOLEAN 
+#endif
+
+]]
+		}
 	}
--- 	preprocess{
--- 		src = dir .. '/jversion.h.in',
--- 		dst = 'build/include/jversion.h',
--- 	}
--- 	preprocess{
--- 		src = dir .. '/jconfigint.h.in',
--- 		dst = 'build/modules/' .. name .. '/' .. dir .. '/jconfigint.h',
--- 		replace = {
--- 			['BUILD'] = '"20231220"',
--- 			['INLINE'] = '',
--- 			['THREAD_LOCAL'] = '',
--- 			['PACKAGE_NAME'] = '"libjpeg-turbo"',
--- 			['VERSION'] = '"' .. version .. '"', 
--- 		},
--- 		replace_line = {
--- 			['#define SIZEOF_SIZE_T  @SIZE_T@'] = [[
--- #include <stddef.h>
--- #define SIZEOF_SIZE_T (SIZE_WIDTH/8)
--- 			]],
--- 			['#cmakedefine HAVE_BUILTIN_CTZL'] = '',
--- 			['#cmakedefine HAVE_INTRIN_H'] = '',
--- 			['#cmakedefine C_ARITH_CODING_SUPPORTED 1'] = '#define C_ARITH_CODING_SUPPORTED 1',
--- 			['#cmakedefine D_ARITH_CODING_SUPPORTED 1'] = '#define D_ARITH_CODING_SUPPORTED 1',
--- 			['#cmakedefine WITH_SIMD 1'] = '/* #define WITH_SIMD 0 */',
--- 		}
--- 	}
 	move_files{
 		['build/include/jpeglib.h'] = 		dir..'/jpeglib.h',
 		['build/include/jerror.h'] = 		dir..'/jerror.h',
 		['build/include/jmorecfg.h'] = 		dir..'/jmorecfg.h',
 		['build/include/jpegint.h'] = 		dir..'/jpegint.h',
-		--.h
-		--['build/include/pngconf.h'] = 	dir..'/pngconf.h',
 	}
 end
 
 dependencies = {
-	--'zlib'
 }
 
 build_lib = {
@@ -108,6 +72,5 @@ build_lib = {
 			<% for _,f in ipairs(lib.components) do %>
 				<%= format_file(module.dir,f ) %>,<% end %>
 		}
-		--defines      { "Z_HAVE_UNISTD_H" , "PNG_ARM_NEON_OPT=0" }
 ]]
 }
