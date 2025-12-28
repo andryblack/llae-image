@@ -15,7 +15,7 @@ function install()
 
 	preprocess{
 		src = dir .. '/jconfig.h.in',
-		dst = 'build/include/jconfig.h',
+		dst = 'build/include/llae-private/jconfig.h',
 		comment = {
 
 		},
@@ -31,7 +31,7 @@ function install()
 	}
 	preprocess{
 		src = dir .. '/jversion.h.in',
-		dst = 'build/include/jversion.h',
+		dst = 'build/include/llae-private/jversion.h',
 	}
 	preprocess{
 		src = dir .. '/jconfigint.h.in',
@@ -56,10 +56,10 @@ function install()
 		}
 	}
 	move_files{
-		['build/include/jpeglib.h'] = 		dir..'/jpeglib.h',
-		['build/include/jerror.h'] = 		dir..'/jerror.h',
-		['build/include/jmorecfg.h'] = 		dir..'/jmorecfg.h',
-		['build/include/jpegint.h'] = 		dir..'/jpegint.h',
+		['build/include/llae-private/jpeglib.h'] = 		dir..'/jpeglib.h',
+		['build/include/llae-private/jerror.h'] = 		dir..'/jerror.h',
+		['build/include/llae-private/jmorecfg.h'] = 		dir..'/jmorecfg.h',
+		['build/include/llae-private/jpegint.h'] = 		dir..'/jpegint.h',
 		--.h
 		--['build/include/pngconf.h'] = 	dir..'/pngconf.h',
 	}
@@ -81,7 +81,7 @@ build_lib = {
 	},
 	project = [[
 		includedirs {
-			'include'
+			'include/llae-private'
 		}
 		files {
 			<% for _,f in ipairs(lib.components) do %>

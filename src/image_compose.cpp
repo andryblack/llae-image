@@ -1,9 +1,9 @@
 #include "image_compose.h"
-#include <lua/state.h>
-#include <lua/stack.h>
-#include <lua/bind.h>
-#include <uv/work.h>
-#include <uv/luv.h>
+#include "lua/state.h"
+#include "lua/stack.h"
+#include "lua/bind.h"
+#include "uv/work.h"
+#include "uv/luv.h"
 
 META_OBJECT_INFO(ImageCompose,meta::object)
 

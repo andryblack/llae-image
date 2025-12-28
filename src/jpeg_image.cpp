@@ -1,9 +1,9 @@
 #include "jpeg_image.h"
-#include <lua/state.h>
-#include <lua/stack.h>
-#include <lua/bind.h>
-#include <uv/work.h>
-#include <uv/luv.h>
+#include "lua/state.h"
+#include "lua/stack.h"
+#include "lua/bind.h"
+#include "uv/work.h"
+#include "uv/luv.h"
 
 #include <iostream>
 #include "image.h"
@@ -14,8 +14,8 @@
 #include <iostream>
 #include <setjmp.h>
 
-#include <jpeglib.h>
-#include <jerror.h>
+#include "llae-private/jpeglib.h"
+#include "llae-private/jerror.h"
 
 META_OBJECT_INFO(JPEGImage,meta::object)
 

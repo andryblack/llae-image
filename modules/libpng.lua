@@ -12,7 +12,7 @@ function install()
 
 	preprocess{
 		src = dir .. '/scripts/pnglibconf.h.prebuilt',
-		dst = 'build/include/pnglibconf.h',
+		dst = 'build/include/llae-private/pnglibconf.h',
 		comment = {
 			['PNG_STDIO_SUPPORTED'] = true,
 			['PNG_SIMPLIFIED_WRITE_STDIO_SUPPORTED'] = true,
@@ -23,8 +23,8 @@ function install()
 		}
 	}
 	move_files{
-		['build/include/png.h'] = 		dir..'/png.h',
-		['build/include/pngconf.h'] = 	dir..'/pngconf.h',
+		['build/include/llae-private/png.h'] = 		dir..'/png.h',
+		['build/include/llae-private/pngconf.h'] = 	dir..'/pngconf.h',
 	}
 end
 
@@ -41,7 +41,7 @@ build_lib = {
 	},
 	project = [[
 		includedirs {
-			'include'
+			'include/llae-private'
 		}
 		files {
 			<% for _,f in ipairs(lib.components) do %>

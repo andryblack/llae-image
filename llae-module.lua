@@ -22,10 +22,7 @@ build_lib = {
 		includedirs{
 			<%= format_mod_file(project:get_module('llae'),'src')%>,
 			'include',
-		}
-		sysincludedirs{
-			<%= format_mod_file(project:get_module('llae'),'src')%>,
-			'include',
+			'include/llae-private'
 		}
 		files {
 			<%= format_file(module.dir,'src','*.cpp')  %>,

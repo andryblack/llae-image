@@ -1,8 +1,8 @@
 
-#include <lua/bind.h>
-#include <llae/buffer.h>
-#include <uv/work.h>
-#include <uv/luv.h>
+#include "lua/bind.h"
+#include "llae/buffer.h"
+#include "uv/work.h"
+#include "uv/luv.h"
 #include "png_image.h"
 #include "jpeg_image.h"
 #include "image.h"

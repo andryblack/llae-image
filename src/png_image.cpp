@@ -1,10 +1,10 @@
 #include "png_image.h"
-#include <lua/state.h>
-#include <lua/stack.h>
-#include <lua/bind.h>
-#include <llae/buffer.h>
-#include <uv/work.h>
-#include <uv/luv.h>
+#include "lua/state.h"
+#include "lua/stack.h"
+#include "lua/bind.h"
+#include "llae/buffer.h"
+#include "uv/work.h"
+#include "uv/luv.h"
 #include <iostream>
 #include <vector>
 #include "image.h"

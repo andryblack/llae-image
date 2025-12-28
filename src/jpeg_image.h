@@ -1,8 +1,7 @@
 #pragma once
 
-#include <meta/object.h>
-#include <common/intrusive_ptr.h>
-#include <png.h>
+#include "meta/object.h"
+#include "common/intrusive_ptr.h"
 #include "image.h"
 
 namespace lua {
