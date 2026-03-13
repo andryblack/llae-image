@@ -43,7 +43,7 @@ lua::multiret Image::lnew(lua::state& l) {
 	if (fmt != ImageFormat::GRAY && fmt != ImageFormat::RGB && fmt != ImageFormat::RGBA) {
 		l.argerror(3,"invalid");
 	}
-	auto data = llae::buffer::get(l,4,true);
+	auto data = lua::stack<llae::buffer_ptr>::get(l,4);
     if (data) {
         if (data->get_len() != (w*h*Image::get_bpp(fmt))) {
             l.argerror(4, "invalid size");
