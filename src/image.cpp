@@ -17,27 +17,7 @@ namespace image {
 			m_data = llae::buffer::alloc(w*h*get_bpp());
 		}
 	}
-	// void Image::lbind(lua::state& l) {
-	// 	lua::bind::function(l,"new",&Image::lnew);
-	// 	lua::bind::function(l,"get_width",&Image::get_width);
-	// 	lua::bind::function(l,"get_height",&Image::get_height);
-	// 	lua::bind::function(l,"get_stride",&Image::get_stride);
-	// 	lua::bind::function(l,"get_format",&Image::get_format);
-	// 	lua::bind::function(l,"get_data",&Image::get_data);
-	// 	lua::bind::function(l,"apply_alpha",&Image::apply_alpha);
-	// 	lua::bind::function(l,"premultiply_alpha",&Image::premultiply_alpha);
-	// 	lua::bind::function(l,"flip_v",&Image::flip_v);
-	// 	lua::bind::function(l,"fill",&Image::fill);
-	// 	lua::bind::function(l,"extract",&Image::extract);
-	// 	lua::bind::function(l,"clone",&Image::clone);
-	// 	lua::bind::function(l,"draw",&Image::draw);
-	// 	lua::bind::function(l,"blend",&Image::blend);
-	//     lua::bind::function(l,"gray_to_rgba", &Image::gray_to_rgba);
-	//     lua::bind::function(l,"find_bounds",&Image::find_bounds);
-	//     lua::bind::function(l,"compare",&Image::compare);
-	//     lua::bind::function(l,"downsample",&Image::downsample);
-	//     lua::bind::function(l,"convert",&Image::convert);
-	// }
+
 	lua::multiret Image::lnew(lua::state& l) {
 		auto w = l.checkinteger(1);
 		auto h = l.checkinteger(2);
@@ -50,6 +30,14 @@ namespace image {
 	        if (data->get_len() != (w*h*Image::get_format_bpp(fmt))) {
 	            l.argerror(4, "invalid size");
 	        }
+	    } else {
+	    	auto raw_data = lua::stack<llae::buffer_view>::get(l,4);
+	    	if (!raw_data.empty()) {
+	    		if (raw_data.get_len() != (w*h*Image::get_format_bpp(fmt))) {
+		            l.argerror(4, "invalid size");
+		        }
+		        data = llae::buffer::hold(raw_data);
+	    	}
 	    }
 		ImagePtr res{new Image(w,h,fmt,std::move(data))};
 		lua::push(l,std::move(res));

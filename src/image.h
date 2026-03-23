@@ -35,7 +35,6 @@ namespace image {
 		bool draw_impl(size_t x,size_t y,const ImagePtr& img,BlendFunc);
 	public:
 		explicit Image(size_t w,size_t h,ImageFormat fmt,llae::buffer_ptr&& data);
-		static void lbind(lua::state& l);
 		/// @luabind(name=new)
 		static lua::multiret lnew(lua::state& l);
 		/// @luabind
