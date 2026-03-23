@@ -5,6 +5,8 @@ module 'llae'
 module 'libpng'
 module 'libjpeg'
 
+bind_headers('src')
+
 premake{
 	project = [[
 

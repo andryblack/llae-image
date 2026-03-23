@@ -29,3 +29,9 @@ build_lib = {
 		}
 	]]
 }
+
+bind_headers = {
+	{
+		dir = '${dir}/src',
+	}
+}

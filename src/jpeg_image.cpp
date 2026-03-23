@@ -17,7 +17,9 @@
 #include "llae-private/jpeglib.h"
 #include "llae-private/jerror.h"
 
-META_OBJECT_INFO(JPEGImage,meta::object)
+META_OBJECT_INFO(image::JPEGImage,meta::object)
+
+namespace image {
 
 // struct for handling jpeg errors
     struct lm_jpeg_error_mgr : jpeg_error_mgr
@@ -99,160 +101,139 @@ META_OBJECT_INFO(JPEGImage,meta::object)
         std::cout <<  temp1  << std::endl;
     }
 
-JPEGImage::JPEGImage() {}
+    JPEGImage::JPEGImage() {}
 
 
-JPEGImage::~JPEGImage() {
-}
+    JPEGImage::~JPEGImage() {
+    }
 
-ImagePtr JPEGImage::do_decode(const llae::buffer_base_ptr& data) {
-    if (!data)
-        return {};
-   
-    // allocate and initialize JPEG decompression object
-    struct jpeg_decompress_struct cinfo;
-    struct lm_jpeg_error_mgr jerr;
+    ImagePtr JPEGImage::do_decode(const llae::buffer_base_ptr& data) {
+        if (!data)
+            return {};
+       
+        // allocate and initialize JPEG decompression object
+        struct jpeg_decompress_struct cinfo;
+        struct lm_jpeg_error_mgr jerr;
+            
+        //We have to set up the error handler first, in case the initialization
+        //step fails.  (Unlikely, but it could happen if you are out of memory.)
+        //This routine fills in the contents of struct jerr, and returns jerr's
+        //address which we place into the link field in cinfo.
         
-    //We have to set up the error handler first, in case the initialization
-    //step fails.  (Unlikely, but it could happen if you are out of memory.)
-    //This routine fills in the contents of struct jerr, and returns jerr's
-    //address which we place into the link field in cinfo.
-    
-    cinfo.err = jpeg_std_error(&jerr);
-    cinfo.err->error_exit = lm_jpeg_error_exit;
-    cinfo.err->output_message = lm_jpeg_output_message;
+        cinfo.err = jpeg_std_error(&jerr);
+        cinfo.err->error_exit = lm_jpeg_error_exit;
+        cinfo.err->output_message = lm_jpeg_output_message;
+            
+        // compatibility fudge:
+        // we need to use setjmp/longjmp for error handling as gcc-linux
+        // crashes when throwing within external c code
+        if (setjmp(jerr.setjmp_buffer))
+        {
+            // If we get here, the JPEG code has signaled an error.
+            // We need to clean up the JPEG object and return.
+            
+            jpeg_destroy_decompress(&cinfo);
+            
+            // if the row pointer was created, we delete it.
+            // return null pointer
+            return {};
+        }
+            
+        // Now we can initialize the JPEG decompression object.
+        jpeg_create_decompress(&cinfo);
+            
+        // specify data source
+        lm_jpeg_source_mgr jsrc;
+        jsrc.data = data;
+            
+            
+        jsrc.init_source = &lm_jpeg_source_mgr::lm_jpeg_init_source;
+        jsrc.fill_input_buffer = &lm_jpeg_source_mgr::lm_jpeg_fill_input_buffer;
+        jsrc.skip_input_data = &lm_jpeg_source_mgr::lm_jpeg_skip_input_data;
+        jsrc.resync_to_restart = &jpeg_resync_to_restart;
+        jsrc.term_source = &lm_jpeg_source_mgr::lm_jpeg_term_source;
+        cinfo.src = &jsrc;
+            
+        // Decodes JPG input from whatever source
+        // Does everything AFTER jpeg_create_decompress
+        // and BEFORE jpeg_destroy_decompress
+        // Caller is responsible for arranging these + setting up cinfo
         
-    // compatibility fudge:
-    // we need to use setjmp/longjmp for error handling as gcc-linux
-    // crashes when throwing within external c code
-    if (setjmp(jerr.setjmp_buffer))
-    {
-        // If we get here, the JPEG code has signaled an error.
-        // We need to clean up the JPEG object and return.
+        // read file parameters with jpeg_read_header()
+        jpeg_read_header(&cinfo, TRUE);
+            
+        ImageFormat fmt = ImageFormat::RGB;
+        cinfo.out_color_space=JCS_RGB;
+        cinfo.out_color_components=3;
+    	cinfo.do_fancy_upsampling=FALSE;
+            
+        // Start decompressor
+        jpeg_start_decompress(&cinfo);
+            
+            
+        // Get image data
+
+        auto rowspan = cinfo.image_width * 3;
+        auto width = cinfo.image_width;
+        auto height = cinfo.image_height;
         
+
+        ImagePtr res{new Image(width,height,fmt,{})};
+
+        auto& output = res->get_data();
+
+    	// Here we use the library's state variable cinfo.output_scanline as the
+        // loop counter, so that we don't have to keep track ourselves.
+        // Create array of row pointers for lib
+        static std::vector<unsigned char*> rowPtr;
+        rowPtr.resize(height);
+            
+        for( size_t i = 0; i < height; i++ )
+            rowPtr[i] = &static_cast<unsigned char*>(output->get_base())[ i * rowspan ];
+        
+        size_t rowsRead = 0;
+        
+        while( cinfo.output_scanline < cinfo.output_height )
+            rowsRead += jpeg_read_scanlines( &cinfo, &rowPtr[rowsRead], cinfo.output_height - rowsRead );
+        
+        // Finish decompression
+        
+        jpeg_finish_decompress(&cinfo);
+        
+        // Release JPEG decompression object
+        // This is an important step since it will release a good deal of memory.
         jpeg_destroy_decompress(&cinfo);
+
         
-        // if the row pointer was created, we delete it.
-        // return null pointer
-        return {};
+        return std::move(res);
     }
-        
-    // Now we can initialize the JPEG decompression object.
-    jpeg_create_decompress(&cinfo);
-        
-    // specify data source
-    lm_jpeg_source_mgr jsrc;
-    jsrc.data = data;
-        
-        
-    jsrc.init_source = &lm_jpeg_source_mgr::lm_jpeg_init_source;
-    jsrc.fill_input_buffer = &lm_jpeg_source_mgr::lm_jpeg_fill_input_buffer;
-    jsrc.skip_input_data = &lm_jpeg_source_mgr::lm_jpeg_skip_input_data;
-    jsrc.resync_to_restart = &jpeg_resync_to_restart;
-    jsrc.term_source = &lm_jpeg_source_mgr::lm_jpeg_term_source;
-    cinfo.src = &jsrc;
-        
-    // Decodes JPG input from whatever source
-    // Does everything AFTER jpeg_create_decompress
-    // and BEFORE jpeg_destroy_decompress
-    // Caller is responsible for arranging these + setting up cinfo
-    
-    // read file parameters with jpeg_read_header()
-    jpeg_read_header(&cinfo, TRUE);
-        
-    ImageFormat fmt = ImageFormat::RGB;
-    cinfo.out_color_space=JCS_RGB;
-    cinfo.out_color_components=3;
-	cinfo.do_fancy_upsampling=FALSE;
-        
-    // Start decompressor
-    jpeg_start_decompress(&cinfo);
-        
-        
-    // Get image data
 
-    auto rowspan = cinfo.image_width * 3;
-    auto width = cinfo.image_width;
-    auto height = cinfo.image_height;
-    
-
-    ImagePtr res{new Image(width,height,fmt,{})};
-
-    auto& output = res->get_data();
-
-	// Here we use the library's state variable cinfo.output_scanline as the
-    // loop counter, so that we don't have to keep track ourselves.
-    // Create array of row pointers for lib
-    static std::vector<unsigned char*> rowPtr;
-    rowPtr.resize(height);
-        
-    for( size_t i = 0; i < height; i++ )
-        rowPtr[i] = &static_cast<unsigned char*>(output->get_base())[ i * rowspan ];
-    
-    size_t rowsRead = 0;
-    
-    while( cinfo.output_scanline < cinfo.output_height )
-        rowsRead += jpeg_read_scanlines( &cinfo, &rowPtr[rowsRead], cinfo.output_height - rowsRead );
-    
-    // Finish decompression
-    
-    jpeg_finish_decompress(&cinfo);
-    
-    // Release JPEG decompression object
-    // This is an important step since it will release a good deal of memory.
-    jpeg_destroy_decompress(&cinfo);
-
-    
-    return std::move(res);
-}
-
-class image_decode_jpeg : public uv::lua_cont_work {
-    llae::buffer_base_ptr m_data;
-    ImagePtr m_result;
-    virtual void on_work() override {
-        m_result = JPEGImage::do_decode(m_data);
-    }
-    virtual int resume_args(lua::state& l,int status) override {
-        int args;
-        if (status < 0) {
-            l.pushnil();
-            uv::push_error(l,status);
-            args = 2;
-        } else {
-            lua::push(l,std::move(m_result));
-            args = 1;
+    class image_decode_jpeg : public llae::work<ImagePtr> {
+        llae::buffer_base_ptr m_data;
+        ImagePtr m_result;
+        virtual void do_work() override {
+            m_result = JPEGImage::do_decode(m_data);
         }
-        return args;
-    }
-public:
-    explicit image_decode_jpeg(lua::ref&& cont,llae::buffer_base_ptr&& data) :
-        uv::lua_cont_work(std::move(cont)),m_data(std::move(data)) {}
-};
-
-
-lua::multiret JPEGImage::decode(lua::state& l) {
-    if (!l.isyieldable()) {
-        l.argerror(1,"is async");
-    }
-    auto data = llae::buffer_base::get(l,1,true);
-    {
-        l.pushthread();
-        lua::ref cont;
-        cont.set(l);
-        common::intrusive_ptr<image_decode_jpeg> work(new image_decode_jpeg(std::move(cont),std::move(data)));
-        int r = work->queue_work(l);
-        if (r < 0) {
-            work->reset(l);
-            l.pushnil();
-            uv::push_error(l,r);
-            return {2};
+        virtual llae::result<ImagePtr> after_work(llae::app& a) override final {
+            if (!m_result) {
+                return llae::string_error::create("failed decode");
+            }
+            return llae::result<ImagePtr>(std::move(m_result));
         }
-    }
-    
-    l.yield(0);
-    return {0};
-}
+    public:
+        explicit image_decode_jpeg(llae::buffer_base_ptr&& data) : m_data(std::move(data)) {}
+    };
 
-void JPEGImage::lbind(lua::state&l ) {
-	lua::bind::function(l,"decode",&JPEGImage::decode);
+    llae::result_promise_ptr<ImagePtr> JPEGImage::decode(llae::app& a,llae::buffer_base_ptr data) {
+        if (!data) {
+            return llae::make_result_promise_string_error<ImagePtr>("need data");
+        }
+        auto work = common::make_intrusive<image_decode_jpeg>(std::move(data));
+        return work->async_run(a);
+    }
+    llae::result_promise_ptr<ImagePtr> JPEGImage::ldecode(lua::state& l,llae::buffer_base_ptr data) {
+        return decode(llae::app::get(l),std::move(data));
+    }
+
+
 }
