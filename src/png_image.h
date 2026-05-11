@@ -45,8 +45,8 @@ namespace image {
 		static llae::buffer_ptr do_encode(const ImagePtr& img);
 		static ImagePtr do_decode(const llae::buffer_base_ptr& data);
 
-		static llae::result_promise_ptr<llae::buffer_base_ptr> encode(llae::app& a, ImagePtr image);
-		static llae::result_promise_ptr<ImagePtr> decode(llae::app& a,llae::buffer_base_ptr data);
+		static llae::result_promise_ptr<llae::buffer_base_ptr> encode(llae::loop& a, ImagePtr image);
+		static llae::result_promise_ptr<ImagePtr> decode(llae::loop& a,llae::buffer_base_ptr data);
 
 		/// @luabind(name=encode,async=true)
 		static llae::result_promise_ptr<llae::buffer_base_ptr> lencode(lua::state&l, ImagePtr image);

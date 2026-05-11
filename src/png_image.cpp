@@ -224,7 +224,7 @@ namespace image {
 		virtual void do_work() override final {
 			m_result = PNGImage::do_encode(m_image);
 		}
-		virtual llae::result<llae::buffer_base_ptr> after_work(llae::app& a) override final {
+		virtual llae::result<llae::buffer_base_ptr> after_work(llae::loop& a) override final {
 			if (!m_result) {
 				return llae::string_error::create("failed encode");
 			}
@@ -235,7 +235,7 @@ namespace image {
 	};
 
 
-	llae::result_promise_ptr<llae::buffer_base_ptr> PNGImage::encode(llae::app& app,ImagePtr image) {
+	llae::result_promise_ptr<llae::buffer_base_ptr> PNGImage::encode(llae::loop& app,ImagePtr image) {
 		if (!image) {
 			return llae::make_result_promise_string_error<llae::buffer_base_ptr>("need image");
 		}
@@ -245,7 +245,7 @@ namespace image {
 	}
 
 	llae::result_promise_ptr<llae::buffer_base_ptr> PNGImage::lencode(lua::state& l,ImagePtr image) {
-		return encode(llae::app::get(l),std::move(image));
+		return encode(llae::loop::get(l),std::move(image));
 	}
 
 
@@ -255,7 +255,7 @@ namespace image {
 		virtual void do_work() override {
 			m_result = PNGImage::do_decode(m_data);
 		}
-		virtual llae::result<ImagePtr> after_work(llae::app& a) override final {
+		virtual llae::result<ImagePtr> after_work(llae::loop& a) override final {
 			if (!m_result) {
 				return llae::string_error::create("failed decode");
 			}
@@ -266,7 +266,7 @@ namespace image {
 	};
 
 
-	llae::result_promise_ptr<ImagePtr> PNGImage::decode(llae::app& app,llae::buffer_base_ptr data) {
+	llae::result_promise_ptr<ImagePtr> PNGImage::decode(llae::loop& app,llae::buffer_base_ptr data) {
 		if (!data) {
 			return llae::make_result_promise_string_error<ImagePtr>("need data");
 		}
@@ -275,7 +275,7 @@ namespace image {
 	}
 
 	llae::result_promise_ptr<ImagePtr> PNGImage::ldecode(lua::state& l,llae::buffer_base_ptr data) {
-		return decode(llae::app::get(l),std::move(data));
+		return decode(llae::loop::get(l),std::move(data));
 	}
 
 

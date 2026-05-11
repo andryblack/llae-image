@@ -23,7 +23,7 @@ namespace image {
 		
 
 		static ImagePtr do_decode(const llae::buffer_base_ptr& data);
-		static llae::result_promise_ptr<ImagePtr> decode(llae::app& a,llae::buffer_base_ptr data);
+		static llae::result_promise_ptr<ImagePtr> decode(llae::loop& a,llae::buffer_base_ptr data);
 		/// @luabind(name=decode,async=true)
 		static llae::result_promise_ptr<ImagePtr> ldecode(lua::state& l,llae::buffer_base_ptr data);
 	};

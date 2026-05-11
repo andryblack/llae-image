@@ -214,7 +214,7 @@ namespace image {
         virtual void do_work() override {
             m_result = JPEGImage::do_decode(m_data);
         }
-        virtual llae::result<ImagePtr> after_work(llae::app& a) override final {
+        virtual llae::result<ImagePtr> after_work(llae::loop& a) override final {
             if (!m_result) {
                 return llae::string_error::create("failed decode");
             }
@@ -224,7 +224,7 @@ namespace image {
         explicit image_decode_jpeg(llae::buffer_base_ptr&& data) : m_data(std::move(data)) {}
     };
 
-    llae::result_promise_ptr<ImagePtr> JPEGImage::decode(llae::app& a,llae::buffer_base_ptr data) {
+    llae::result_promise_ptr<ImagePtr> JPEGImage::decode(llae::loop& a,llae::buffer_base_ptr data) {
         if (!data) {
             return llae::make_result_promise_string_error<ImagePtr>("need data");
         }
@@ -232,7 +232,7 @@ namespace image {
         return work->async_run(a);
     }
     llae::result_promise_ptr<ImagePtr> JPEGImage::ldecode(lua::state& l,llae::buffer_base_ptr data) {
-        return decode(llae::app::get(l),std::move(data));
+        return decode(llae::loop::get(l),std::move(data));
     }
 
 

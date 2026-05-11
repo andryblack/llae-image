@@ -82,7 +82,7 @@ namespace image {
 		virtual void do_work() override final {
 			m_result = m_compose->work();
 		}
-		virtual llae::result<ImagePtr> after_work(llae::app& a) override final {
+		virtual llae::result<ImagePtr> after_work(llae::loop& a) override final {
 			if (!m_result) {
 				return llae::string_error::create("failed decode");
 			}
@@ -105,6 +105,6 @@ namespace image {
 
 	llae::result_promise_ptr<ImagePtr> ImageCompose::run(lua::state& l) {
 		auto work = common::make_intrusive<ComposeWork>(ImageComposePtr(this));
-        return work->async_run(llae::app::get(l));
+        return work->async_run(llae::loop::get(l));
 	}
 }
