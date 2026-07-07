@@ -50,6 +50,10 @@ typedef unsigned char boolean;
 		['build/include/llae-private/jmorecfg.h'] = 		dir..'/jmorecfg.h',
 		['build/include/llae-private/jpegint.h'] = 		dir..'/jpegint.h',
 	}
+
+	isolate(dir,{'*.c','*.h'},{
+		['build/include/llae-private'] = 'llae-private/'
+	})
 end
 
 dependencies = {
@@ -69,7 +73,7 @@ build_lib = {
 	},
 	project = [[
 		includedirs {
-			'include/llae-private'
+			'include'
 		}
 		files {
 			<% for _,f in ipairs(lib.components) do %>

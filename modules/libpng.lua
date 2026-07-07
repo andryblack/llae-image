@@ -26,6 +26,9 @@ function install()
 		['build/include/llae-private/png.h'] = 		dir..'/png.h',
 		['build/include/llae-private/pngconf.h'] = 	dir..'/pngconf.h',
 	}
+	isolate(dir,{'*.c','*.h'},{
+		['build/include/llae-private'] = 'llae-private/'
+	})
 end
 
 dependencies = {
@@ -41,7 +44,7 @@ build_lib = {
 	},
 	project = [[
 		includedirs {
-			'include/llae-private'
+			'include'
 		}
 		files {
 			<% for _,f in ipairs(lib.components) do %>
